@@ -67,11 +67,21 @@ else:
         # Try importing our fast C module.
         import imp
         import dbgp
-        info = imp.find_module(modname, dbgp.__path__)
+        platpkgname=sys.platform
+        if sys.platform.startswith('win'):
+            platpkgname = 'win32'
+        elif sys.platform.startswith('linux'):
+            if sys.maxsize == 2147483647:
+                platpkgname = 'linux32'
+            else:
+                platpkgname = 'linux64'
+        info = imp.find_module(platpkgname, dbgp.__path__)
+        platpkg = imp.load_module(platpkgname, *info)
+        info = imp.find_module(modname, platpkg.__path__)
         _client = imp.load_module(modname, *info)
         sys.modules["_client"] = _client
         from _client import *
-        del sys.modules["_client"], info, _client
+        del sys.modules["_client"], info, _client, platpkg
     except ImportError as ex:
         #configureLogging(log, logging.INFO)
         #log.exception(ex)

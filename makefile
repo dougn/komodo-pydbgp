@@ -23,13 +23,16 @@ $(PYTHON3): makefile requirements.txt $(VIRTUALENV_WHEEL)
 	@$(PYTHON3) -m pip install -r requirements.txt -f wheelhouse
 
 
-py2wheel: $(PYTHON2) $(PYTHON2SRC) setup2.py
-	@$(PYTHON2) setup2.py bdist_wheel
-	@$(PYTHON2) setup2.py bdist_src
+py2wheel: $(PYTHON2) $(PYTHON2SRC) setup.py
+	@$(PYTHON2) setup.py bdist_wheel
+	@$(PYTHON2) setup.py sdist
+	@-rm -rf *.egg-info
 
-py3wheel: $(PYTHON3) $(PYTHON3SRC) setup3.py
-	@$(PYTHON3) setup3.py bdist_wheel
-	@$(PYTHON3) setup3.py bdist_src
+
+py3wheel: $(PYTHON3) $(PYTHON3SRC) setup.py
+	@$(PYTHON3) setup.py bdist_wheel
+	@$(PYTHON3) setup.py sdist
+	@-rm -rf *.egg-info
 
 wheels: py2wheel py3wheel
 

@@ -113,7 +113,7 @@ finally:
 #---- globals
 
 log = logging.getLogger("dbgp.proxy")
-IDENTCHARS = string.letters + string.digits + '_'
+IDENTCHARS = string.ascii_letters + string.digits + '_'
 
 
 
@@ -201,7 +201,7 @@ class sessionProxy(dbgp.serverBase.session):
                 if exc:
                     self._stop = 1
                     log.exception("socket Exception in _cmdloop [%r]", self)
-        except Exception, ex:
+        except Exception as ex:
             log.warn("Exception in _cmdloop [%s]", ex)
         self._cmdthread = None
 
@@ -218,7 +218,7 @@ class sessionProxy(dbgp.serverBase.session):
         try:
             self._server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self._server.connect((self._serverAddr[0], self._serverAddr[1]))
-        except socket.error, details:
+        except socket.error as details:
             msg = "Unable to connect to the server listener %s:%d [%r]" % \
                 (self._serverAddr[0],self._serverAddr[1], self)
             log.exception(msg)
@@ -296,20 +296,20 @@ class serverHandler(dbgp.serverBase.listener):
         log.info("Server:onConnect %r [%s]", addr, data)
         try:
             data = data.decode('utf-8')
-        except (UnicodeEncodeError, UnicodeDecodeError), e:
+        except (UnicodeEncodeError, UnicodeDecodeError) as e:
             try:
                 data = data.decode()
-            except (UnicodeEncodeError, UnicodeDecodeError), e:
+            except (UnicodeEncodeError, UnicodeDecodeError) as e:
                 pass
         command, args, line = self.parseline(data)
         func = 'do_' + command
         try:
             func = getattr(self, 'do_' + command)
-        except AttributeError, e:
+        except AttributeError as e:
             self._error(client, addr, command, str(e))
         try:
             func(client, addr, args)
-        except Exception, e:
+        except Exception as e:
             self._error(client, addr, command, str(e))
         client.close()
         return 0
@@ -389,7 +389,7 @@ class proxy:
         except KeyboardInterrupt:
             self._clientListener.stop()
             self._serverListener.stop()
-        except Exception, e:
+        except Exception as e:
             log.exception(e)
             self._clientListener.stop()
             self._serverListener.stop()
@@ -460,7 +460,7 @@ def main(argv):
         optlist, args = getopt.getopt(argv[1:], 'hVd:l:i:',
             ['help', 'version', 'debug_port',
              'log_level', 'ide_port'])
-    except getopt.GetoptError, msg:
+    except getopt.GetoptError as msg:
         sys.stderr.write("proxy: error: %s\n" % str(msg))
         sys.stderr.write("See 'proxy --help'.\n")
         return 1
@@ -474,7 +474,7 @@ def main(argv):
         if optarg:
             try:
                 optarg = optarg.decode()
-            except UnicodeDecodeError, e:
+            except UnicodeDecodeError as e:
                 pass # nothing we can do if defaultlocale is wrong
         if opt in ('-h', '--help'):
             sys.stdout.write(__doc__+'\n')
@@ -516,7 +516,7 @@ def main(argv):
     configureLogging(dbgp.serverBase.log, logLevel)
     try:
         proxy(dbghost, dbgport, idehost, ideport).waitForever()
-    except Exception, e:
+    except Exception as e:
         log.exception(e)
         # Some exceptions will lock the console, such as an error to
         # bind the address catching any exceptions allow us to exit
@@ -524,6 +524,9 @@ def main(argv):
         pass
     return 1
 
+def __main__():
+    sys.exit(main(sys.argv))
+    
 if __name__ == "__main__":
-    main(sys.argv)
+    __main__()
 
